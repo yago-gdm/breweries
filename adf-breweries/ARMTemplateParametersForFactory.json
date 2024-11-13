@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-breweries"
+		},
+		"AzureDataLakeStorageBreweries_accountKey": {
+			"value": ""
+		},
+		"HttpServerBreweries_properties_typeProperties_url": {
+			"value": "https://api.openbrewerydb.org/breweries"
+		},
+		"AzureDataLakeStorageBreweries_properties_typeProperties_url": {
+			"value": "https://dlsbreweries.dfs.core.windows.net/"
+		}
+	}
+}
