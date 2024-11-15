@@ -11,34 +11,27 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorageBreweries'"
 		},
-		"HttpServerBreweries_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://api.openbrewerydb.org/breweries"
-		},
 		"AzureDataLakeStorageBreweries_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://dlsbreweries.dfs.core.windows.net/"
+		},
+		"AzureDatabricks1_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1114-182015-qcrgmgdh"
+		},
+		"AzureKeyVaultBreweries_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kvault-breweries.vault.azure.net/"
+		},
+		"HttpServerBreweries_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://api.openbrewerydb.org/breweries"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
-		{
-			"name": "[concat(parameters('factoryName'), '/HttpServerBreweries')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "HttpServer",
-				"typeProperties": {
-					"url": "[parameters('HttpServerBreweries_properties_typeProperties_url')]",
-					"enableServerCertificateValidation": true,
-					"authenticationType": "Anonymous"
-				}
-			},
-			"dependsOn": []
-		},
 		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorageBreweries')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -52,6 +45,50 @@
 						"type": "SecureString",
 						"value": "[parameters('AzureDataLakeStorageBreweries_accountKey')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-2039102865185289.9.azuredatabricks.net",
+					"authentication": "MSI",
+					"workspaceResourceId": "/subscriptions/e227fd4a-d7ae-438e-8aad-b23010396c8a/resourceGroups/rg-breweries/providers/Microsoft.Databricks/workspaces/adb-breweries",
+					"existingClusterId": "[parameters('AzureDatabricks1_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureKeyVaultBreweries')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('AzureKeyVaultBreweries_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HttpServerBreweries')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServerBreweries_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
 				}
 			},
 			"dependsOn": []
@@ -100,6 +137,37 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageBreweries')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricksBreweries')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-2039102865185289.9.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVaultBreweries",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "adb-token"
+					},
+					"newClusterNodeType": "Standard_D4pds_v6",
+					"newClusterNumOfWorker": "1",
+					"newClusterSparkEnvVars": {
+						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+					},
+					"newClusterVersion": "15.4.x-scala2.12",
+					"clusterOption": "Fixed",
+					"newClusterInitScripts": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVaultBreweries')]"
 			]
 		},
 		{
@@ -156,6 +224,60 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "Bronze to Silver",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "Copy data from API",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Breweries/01.silver/silver"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricksBreweries",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Silver to Gold",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "Bronze to Silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Breweries/02.gold/gold"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricksBreweries",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
 				"policy": {
@@ -165,7 +287,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/JsonBreweries')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetBreweries')]"
+				"[concat(variables('factoryId'), '/datasets/ParquetBreweries')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDatabricksBreweries')]"
 			]
 		}
 	]

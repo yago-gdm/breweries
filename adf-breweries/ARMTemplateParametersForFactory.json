@@ -8,11 +8,17 @@
 		"AzureDataLakeStorageBreweries_accountKey": {
 			"value": ""
 		},
-		"HttpServerBreweries_properties_typeProperties_url": {
-			"value": "https://api.openbrewerydb.org/breweries"
-		},
 		"AzureDataLakeStorageBreweries_properties_typeProperties_url": {
 			"value": "https://dlsbreweries.dfs.core.windows.net/"
+		},
+		"AzureDatabricks1_properties_typeProperties_existingClusterId": {
+			"value": "1114-182015-qcrgmgdh"
+		},
+		"AzureKeyVaultBreweries_properties_typeProperties_baseUrl": {
+			"value": "https://kvault-breweries.vault.azure.net/"
+		},
+		"HttpServerBreweries_properties_typeProperties_url": {
+			"value": "https://api.openbrewerydb.org/breweries"
 		}
 	}
 }
