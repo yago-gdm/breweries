@@ -27,6 +27,10 @@
 			"type": "string",
 			"defaultValue": "https://api.openbrewerydb.org/breweries"
 		},
+		"AzureDatabricksBreweries_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1114-182015-qcrgmgdh"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -68,6 +72,9 @@
 					},
 					"HttpServerBreweries_properties_typeProperties_url": {
 						"value": "[parameters('HttpServerBreweries_properties_typeProperties_url')]"
+					},
+					"AzureDatabricksBreweries_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('AzureDatabricksBreweries_properties_typeProperties_existingClusterId')]"
 					}
 				}
 			},

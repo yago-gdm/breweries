@@ -26,6 +26,10 @@
 		"HttpServerBreweries_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://api.openbrewerydb.org/breweries"
+		},
+		"AzureDatabricksBreweries_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1114-182015-qcrgmgdh"
 		}
 	},
 	"variables": {
@@ -277,14 +281,7 @@
 						},
 						"secretName": "adb-token"
 					},
-					"newClusterNodeType": "Standard_D4pds_v6",
-					"newClusterNumOfWorker": "1",
-					"newClusterSparkEnvVars": {
-						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-					},
-					"newClusterVersion": "15.4.x-scala2.12",
-					"clusterOption": "Fixed",
-					"newClusterInitScripts": []
+					"existingClusterId": "[parameters('AzureDatabricksBreweries_properties_typeProperties_existingClusterId')]"
 				}
 			},
 			"dependsOn": [

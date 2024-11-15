@@ -19,6 +19,9 @@
 		},
 		"HttpServerBreweries_properties_typeProperties_url": {
 			"value": "https://api.openbrewerydb.org/breweries"
+		},
+		"AzureDatabricksBreweries_properties_typeProperties_existingClusterId": {
+			"value": "1114-182015-qcrgmgdh"
 		}
 	}
 }
